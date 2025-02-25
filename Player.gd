@@ -25,9 +25,9 @@ func _ready():
 	inventory_label.text = "Coins: " + str(coins)
 	
 	# Snap player to the center of the current tile:
-	var snapped_tile = tile_map.local_to_map(global_position)
-	global_position = tile_map.map_to_local(snapped_tile) + Vector2(tile_size / 2, tile_size / 2)
-	print("Starting Position (Tile Snapped):", global_position)
+	#var snapped_tile = tile_map.local_to_map(global_position)
+	#global_position = tile_map.map_to_local(snapped_tile) + Vector2(tile_size / 2, tile_size / 2)
+	#print("Starting Position (Tile Snapped):", global_position)
 	
 	# Connect timers
 	decay_timer.timeout.connect(_decrease_space_bar_progress)
