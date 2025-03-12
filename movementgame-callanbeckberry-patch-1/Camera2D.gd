@@ -9,6 +9,9 @@ func _ready() -> void:
 	target_position = global_position
 	print("Camera ready. Initial position: ", global_position)
 	
+	# Add camera to cameras group
+	add_to_group("cameras")
+	
 	var room_manager = get_node_or_null("../RoomManager")
 	if room_manager:
 		room_manager.connect("room_changed", Callable(self, "_on_room_changed"))
