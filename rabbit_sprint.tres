@@ -1,0 +1,83 @@
+[gd_resource type="SpriteFrames" load_steps=10 format=3 uid="uid://cbuoupg5omofo"]
+
+[ext_resource type="Texture2D" uid="uid://cxuryokjriuck" path="res://Rabbit mock-Sheet.png" id="1_hty5q"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_g44mg"]
+atlas = ExtResource("1_hty5q")
+region = Rect2(64, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ov2ty"]
+atlas = ExtResource("1_hty5q")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hwjky"]
+atlas = ExtResource("1_hty5q")
+region = Rect2(0, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_upy2o"]
+atlas = ExtResource("1_hty5q")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6hpm0"]
+atlas = ExtResource("1_hty5q")
+region = Rect2(96, 128, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vr4ea"]
+atlas = ExtResource("1_hty5q")
+region = Rect2(64, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hlmdc"]
+atlas = ExtResource("1_hty5q")
+region = Rect2(96, 96, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yaqff"]
+atlas = ExtResource("1_hty5q")
+region = Rect2(96, 128, 32, 32)
+
+[resource]
+resource_local_to_scene = true
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_g44mg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ov2ty")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hwjky")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_upy2o")
+}],
+"loop": true,
+"name": &"jogging",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6hpm0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vr4ea")
+}],
+"loop": true,
+"name": &"running",
+"speed": 1.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hlmdc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yaqff")
+}],
+"loop": true,
+"name": &"sprinting",
+"speed": 5.0
+}]
