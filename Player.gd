@@ -13,6 +13,9 @@ extends Area2D
 @onready var main_camera = $"../Camera2D"  # Reference to main camera
 @onready var global_ui_manager = get_node("/root/GlobalUIManager")  # Reference to GlobalUIManager autoload
 
+signal battle_started
+signal battle_ended
+
 var tile_size = 32  # TileMap cell size
 var is_moving = false
 var space_press_count = 0  # Accumulated spacebar presses (max 10)
@@ -391,6 +394,8 @@ func start_battle():
 	print("A battle has started!")
 	in_battle = true
 	
+	emit_signal("battle_started")
+	
 	# Hide main UI
 	if main_ui:
 		main_ui.visible = false
@@ -398,6 +403,15 @@ func start_battle():
 	# Hide key if it's following the player
 	if has_key and key_instance != null:
 		key_instance.visible = false
+	
+	var ui_background = get_node_or_null("../CanvasLayer/UIBackground")
+	if ui_background:
+		ui_background.visible = false
+	
+	# Hide the wizard turtle
+	var wizard_turtle = get_node_or_null("../CanvasLayer/WizardTurtleUI")
+	if wizard_turtle:
+		wizard_turtle.hide_wizard_turtle()
 	
 	# Hide all collectibles (coins, etc.)
 	for collectible in get_tree().get_nodes_in_group("collectibles"):
@@ -431,6 +445,8 @@ func _on_battle_ended():
 	
 	print("Battle ended, returning to main game")
 	
+	emit_signal("battle_ended")
+	
 	# Resume normal game processing
 	set_process(true)
 	set_physics_process(true)
@@ -438,6 +454,18 @@ func _on_battle_ended():
 	# Show main UI again
 	if main_ui:
 		main_ui.visible = true
+	
+	var ui_background = get_node_or_null("../CanvasLayer/UIBackground")
+	if ui_background:
+		ui_background.visible = true
+	
+	var wizard_turtle = get_node_or_null("../CanvasLayer/WizardTurtleUI")
+	if wizard_turtle:
+		wizard_turtle.show_wizard_turtle()
+	
+	# After battle ends and when returning to the main game scene
+	if wizard_turtle:
+		wizard_turtle.battle_ended()
 	
 	# Show key again if the player has one
 	if has_key and key_instance != null:

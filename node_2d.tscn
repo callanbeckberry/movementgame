@@ -1,4 +1,4 @@
-[gd_scene load_steps=31 format=4 uid="uid://bkxamkmh0oomm"]
+[gd_scene load_steps=35 format=4 uid="uid://bkxamkmh0oomm"]
 
 [ext_resource type="Texture2D" uid="uid://cxuryokjriuck" path="res://Rabbit mock-Sheet.png" id="1_b77a1"]
 [ext_resource type="PackedScene" uid="uid://baywa77ock5xw" path="res://GlobalUI.tscn" id="1_dg36k"]
@@ -10,8 +10,11 @@
 [ext_resource type="Script" path="res://RoomManager.gd" id="4_rbhoq"]
 [ext_resource type="PackedScene" uid="uid://dq2qb3mfbnpow" path="res://KeyItem.tscn" id="8_6kyab"]
 [ext_resource type="PackedScene" uid="uid://b253yrcna8xay" path="res://coin.tscn" id="8_rm4bw"]
+[ext_resource type="Texture2D" uid="uid://c8jy2oj4rkpjs" path="res://UIbackground.png" id="9_vacke"]
 [ext_resource type="PackedScene" uid="uid://c68siytk1qj5k" path="res://SprintMeter.tscn" id="10_5qnos"]
 [ext_resource type="PackedScene" uid="uid://cp44ycryov0i3" path="res://BattleScene.tscn" id="10_q73lq"]
+[ext_resource type="PackedScene" uid="uid://b8hs6ypq0i4ct" path="res://wizard_turtle_ui.tscn" id="10_vahfw"]
+[ext_resource type="Script" path="res://ui_background.gd" id="10_xivut"]
 [ext_resource type="PackedScene" uid="uid://d5hqkwr3swuj" path="res://npc.tscn" id="12_3gwuj"]
 [ext_resource type="PackedScene" uid="uid://bqu0yqiudnb0f" path="res://DialogueManager.tscn" id="13_u6tf7"]
 [ext_resource type="Texture2D" uid="uid://duhkj4uuuevav" path="res://guard.png" id="14_byf16"]
@@ -64,6 +67,9 @@ load_path = "res://.godot/imported/Rabbit mock-Sheet.png-77891224a4ab21b3cc19d21
 atlas = SubResource("CompressedTexture2D_tjx0s")
 region = Rect2(96, 64, 32, 32)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_bo33t"]
+atlas = ExtResource("9_vacke")
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_8x688"]
 size = Vector2(512, 512)
 
@@ -75,7 +81,7 @@ region = Rect2(96, 64, 32, 32)
 atlas = ExtResource("1_b77a1")
 region = Rect2(64, 64, 32, 32)
 
-[sub_resource type="SpriteFrames" id="SpriteFrames_eovs8"]
+[sub_resource type="SpriteFrames" id="SpriteFrames_hn2ve"]
 resource_local_to_scene = true
 animations = [{
 "frames": [{
@@ -98,7 +104,7 @@ region = Rect2(704, 384, 32, 32)
 atlas = ExtResource("14_byf16")
 region = Rect2(640, 384, 32, 32)
 
-[sub_resource type="SpriteFrames" id="SpriteFrames_fph3n"]
+[sub_resource type="SpriteFrames" id="SpriteFrames_07fg5"]
 resource_local_to_scene = true
 animations = [{
 "frames": [{
@@ -184,6 +190,12 @@ autostart = true
 [node name="NoInputTimer" type="Timer" parent="CanvasLayer/Timers"]
 wait_time = 5.0
 
+[node name="UIBackground" type="Sprite2D" parent="CanvasLayer/Timers"]
+position = Vector2(-21, -32)
+scale = Vector2(0.933333, 0.933333)
+texture = SubResource("AtlasTexture_bo33t")
+script = ExtResource("10_xivut")
+
 [node name="UI" type="Control" parent="CanvasLayer"]
 layout_direction = 1
 layout_mode = 3
@@ -232,6 +244,17 @@ offset_top = 648.0
 offset_right = 999.0
 offset_bottom = 671.0
 
+[node name="SprintMeter" parent="CanvasLayer" instance=ExtResource("10_5qnos")]
+z_index = 101
+position = Vector2(-368, 240)
+ui_position = Vector2(150, 500)
+
+[node name="WizardTurtleUI" parent="CanvasLayer" instance=ExtResource("10_vahfw")]
+offset_left = -330.0
+offset_top = 200.0
+offset_right = -178.0
+offset_bottom = 536.0
+
 [node name="Rooms" type="Area2D" parent="."]
 visible = false
 disable_mode = 2
@@ -271,7 +294,7 @@ transform = Transform2D(1, 0, 0, 1, 0, -64)
 
 [node name="Villager" parent="." instance=ExtResource("12_3gwuj")]
 position = Vector2(-160, -159)
-sprite_frames = SubResource("SpriteFrames_eovs8")
+sprite_frames = SubResource("SpriteFrames_hn2ve")
 
 [node name="Coin Room 1" type="Node" parent="."]
 
@@ -357,9 +380,6 @@ collision_mask = 2
 position = Vector2(337, 112)
 collision_mask = 2
 
-[node name="SprintMeter" parent="." instance=ExtResource("10_5qnos")]
-position = Vector2(-368, 240)
-
 [node name="Farmer" parent="." instance=ExtResource("12_3gwuj")]
 position = Vector2(-32, -96)
 npc_name = "Farmer"
@@ -368,8 +388,8 @@ dialogues = Array[String](["LOL", "AHHHHHH", "People die in car accidents all th
 sprite_frames = ExtResource("14_r83hg")
 
 [node name="Final Boss" parent="." instance=ExtResource("16_gmjt1")]
-position = Vector2(-96, 32)
+position = Vector2(-32, -544)
 portrait_texture = SubResource("AtlasTexture_0prv2")
-sprite_frames = SubResource("SpriteFrames_fph3n")
+sprite_frames = SubResource("SpriteFrames_07fg5")
 
 [node name="CRTEffect" parent="." instance=ExtResource("18_2myn4")]
