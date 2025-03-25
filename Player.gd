@@ -12,6 +12,11 @@ extends Area2D
 @onready var main_ui = $"../CanvasLayer/UI"  # Reference to main UI
 @onready var main_camera = $"../Camera2D"  # Reference to main camera
 @onready var global_ui_manager = get_node("/root/GlobalUIManager")  # Reference to GlobalUIManager autoload
+@onready var sprite = $Sprite2D  # Reference to the player sprite - add this node if you don't have it
+@onready var modal_manager = get_node_or_null("/root/ModalManager") # Reference to the modal manager
+
+signal battle_started
+signal battle_ended
 
 var tile_size = 32  # TileMap cell size
 var is_moving = false
@@ -19,6 +24,7 @@ var space_press_count = 0  # Accumulated spacebar presses (max 10)
 var available_moves = 0
 var target_position = Vector2.ZERO  # Destination position for movement
 var can_move = true  # Flag to control movement (for dialogue system)
+var facing_direction = Vector2.DOWN  # Track which direction player is facing
 
 # Coin system
 var coins = 0           # Current collected coins
@@ -44,6 +50,9 @@ var current_npc = null
 var in_dialogue = false
 var last_npc_check_position = Vector2.ZERO
 var dialogue_cooldown = false # Add cooldown to prevent rapid dialogue triggering
+
+# Modal system variables
+var modal_active = false
 
 func _ready():
 	add_to_group("player")
@@ -76,6 +85,55 @@ func _ready():
 		
 	# Setup dialogue manager if it doesn't exist
 	setup_dialogue_manager()
+	
+	# Setup modal manager if needed
+	setup_modal_manager()
+	
+	# Set initial sprite direction
+	update_sprite_direction(Vector2.DOWN)
+	
+	# Setup directional sprites if using Method 3
+	setup_directional_sprites()
+
+func setup_modal_manager():
+	modal_manager = get_node_or_null("/root/ModalManager")
+	
+	if not modal_manager:
+		modal_manager = get_node_or_null("../CanvasLayer/ModalManager")
+	
+	if not modal_manager:
+		# Find it anywhere in the scene
+		var potential_managers = get_tree().get_nodes_in_group("modal_manager")
+		if potential_managers.size() > 0:
+			modal_manager = potential_managers[0]
+	
+	# Connect to modal closed signal
+	if modal_manager and not modal_manager.is_connected("modal_closed", _on_modal_closed):
+		modal_manager.connect("modal_closed", _on_modal_closed)
+		print("Player: Connected to modal_closed signal")
+	else:
+		print("Player: Could not connect to modal_closed signal")
+		
+# Function to set up the directional sprites with unique textures
+func setup_directional_sprites():
+	var sprite_down = get_node_or_null("SpriteDown")
+	var sprite_up = get_node_or_null("SpriteUp")
+	var sprite_left = get_node_or_null("SpriteLeft")
+	var sprite_right = get_node_or_null("SpriteRight")
+	
+	if sprite_down and sprite_up and sprite_left and sprite_right:
+		# Make sure all sprites are invisible initially except the default (down)
+		sprite_down.visible = true
+		sprite_up.visible = false
+		sprite_left.visible = false
+		sprite_right.visible = false
+		
+		# Load unique textures for each sprite if needed
+		# Uncomment and modify paths as needed
+		# sprite_down.texture = load("res://assets/player_down.png")
+		# sprite_up.texture = load("res://assets/player_up.png")
+		# sprite_left.texture = load("res://assets/player_left.png")
+		# sprite_right.texture = load("res://assets/player_right.png")
 
 # Setup the dialogue manager if it doesn't exist yet
 func setup_dialogue_manager():
@@ -100,44 +158,141 @@ func get_current_tile():
 	return tile_map.local_to_map(global_position - Vector2(tile_size / 2, tile_size / 2))
 
 func _process(_delta):
-	if is_moving or in_battle or in_dialogue or not can_move:
+	if is_moving or in_battle or in_dialogue or not can_move or modal_active:
+		return
+
+	# Check for modal button presses
+	if Input.is_action_just_pressed("recap_button"):
+		open_modal("recap")
+		return
+		
+	if Input.is_action_just_pressed("wallet_button"):
+		# Simply open the wallet without trying to update yen
+		open_modal("wallet")
+		return
+		
+	if Input.is_action_just_pressed("mystery_button"):
+		open_modal("mystery")
 		return
 
 	# Immediately add one move when "X" is pressed
 	# Only if we're not in battle
 	if Input.is_action_just_pressed("add_move") and not in_battle:
-		available_moves += 1
-		move_counter.text = "Moves: " + str(available_moves)
+		# Add to movement counter
+		add_move()
 		
 		# Update the yen counter in GlobalUIManager
 		if global_ui_manager:
 			global_ui_manager.add_yen(27)
 	
-	# Spacebar press logic for banking moves
-	if Input.is_action_just_pressed("ui_accept"):
-		space_press_count += 1
-		space_bar_progress.value = space_press_count
-		
-		if space_press_count >= 10:
-			available_moves += 1
-			move_counter.text = "Moves: " + str(available_moves)
-			space_press_count = 0
-			space_bar_progress.value = 0
-		
-		no_input_timer.stop()
-		no_input_timer.start()
-		decay_timer.stop()
+	# Spacebar or interact button both add to the space bar progress
+	if (Input.is_action_just_pressed("ui_accept") or Input.is_action_just_pressed("interact")) and not in_battle:
+		increment_space_bar_progress()
 	
 	# Process movement input (W, S, A, D) if moves are available
 	if available_moves > 0:
 		if Input.is_action_just_pressed("up"):
+			update_sprite_direction(Vector2.UP)
 			move(Vector2.UP)
 		elif Input.is_action_just_pressed("down"):
+			update_sprite_direction(Vector2.DOWN)
 			move(Vector2.DOWN)
 		elif Input.is_action_just_pressed("left"):
+			update_sprite_direction(Vector2.LEFT)
 			move(Vector2.LEFT)
 		elif Input.is_action_just_pressed("right"):
+			update_sprite_direction(Vector2.RIGHT)
 			move(Vector2.RIGHT)
+
+func open_modal(modal_type):
+	if not modal_manager or modal_active:
+		return
+	
+	modal_active = true
+	
+	# Make sure GlobalUIManager data is synchronized before opening wallet
+	if modal_type == "wallet" and global_ui_manager:
+		print("Player: Syncing with GlobalUIManager before opening wallet")
+	
+	match modal_type:
+		"recap":
+			modal_manager.open_recap_modal()
+		"wallet":
+			# Ensure modal_manager is available and not null
+			if modal_manager:
+				modal_manager.open_wallet_modal()
+			else:
+				print("ERROR: Cannot open wallet modal - modal_manager is null")
+				modal_active = false
+		"mystery":
+			modal_manager.open_mystery_modal()
+
+# Handle modal closed event
+func _on_modal_closed(modal_type):
+	modal_active = false
+	print("Modal closed: ", modal_type)
+	
+	# Resume game processing
+	set_process(true)
+	set_physics_process(true)
+
+
+
+# Function to add a move directly to the available moves
+func add_move():
+	available_moves += 1
+	move_counter.text = "Moves: " + str(available_moves)
+
+# Function to increment the space bar progress
+func increment_space_bar_progress():
+	space_press_count += 1
+	space_bar_progress.value = space_press_count
+	
+	if space_press_count >= 10:
+		available_moves += 1
+		move_counter.text = "Moves: " + str(available_moves)
+		space_press_count = 0
+		space_bar_progress.value = 0
+	
+	no_input_timer.stop()
+	no_input_timer.start()
+	decay_timer.stop()
+
+# New function to update sprite direction
+func update_sprite_direction(direction: Vector2):
+	facing_direction = direction
+	
+	# Method 1: Using frame-based sprite sheet
+	if sprite and sprite.hframes > 1:
+		# Assuming sprite sheet with 4 directions (down, left, right, up)
+		if direction == Vector2.DOWN:
+			sprite.frame = 0
+		elif direction == Vector2.LEFT:
+			sprite.frame = 1
+		elif direction == Vector2.RIGHT:
+			sprite.frame = 2
+		elif direction == Vector2.UP:
+			sprite.frame = 3
+	
+	# Method 2: Using flip_h for simple left/right sprites
+	elif sprite:
+		if direction == Vector2.LEFT:
+			sprite.flip_h = true
+		elif direction == Vector2.RIGHT:
+			sprite.flip_h = false
+	
+	# Method 3: If you have separate sprites for each direction
+	# This assumes you have child nodes named "SpriteDown", "SpriteUp", etc.
+	var sprite_down = get_node_or_null("SpriteDown")
+	var sprite_up = get_node_or_null("SpriteUp")
+	var sprite_left = get_node_or_null("SpriteLeft")
+	var sprite_right = get_node_or_null("SpriteRight")
+	
+	if sprite_down and sprite_up and sprite_left and sprite_right:
+		sprite_down.visible = direction == Vector2.DOWN
+		sprite_up.visible = direction == Vector2.UP
+		sprite_left.visible = direction == Vector2.LEFT
+		sprite_right.visible = direction == Vector2.RIGHT
 
 func _start_decay_timer():
 	decay_timer.start()
@@ -391,6 +546,8 @@ func start_battle():
 	print("A battle has started!")
 	in_battle = true
 	
+	emit_signal("battle_started")
+	
 	# Hide main UI
 	if main_ui:
 		main_ui.visible = false
@@ -398,6 +555,15 @@ func start_battle():
 	# Hide key if it's following the player
 	if has_key and key_instance != null:
 		key_instance.visible = false
+	
+	var ui_background = get_node_or_null("../CanvasLayer/UIBackground")
+	if ui_background:
+		ui_background.visible = false
+	
+	# Hide the wizard turtle
+	var wizard_turtle = get_node_or_null("../CanvasLayer/WizardTurtleUI")
+	if wizard_turtle:
+		wizard_turtle.hide_wizard_turtle()
 	
 	# Hide all collectibles (coins, etc.)
 	for collectible in get_tree().get_nodes_in_group("collectibles"):
@@ -431,6 +597,8 @@ func _on_battle_ended():
 	
 	print("Battle ended, returning to main game")
 	
+	emit_signal("battle_ended")
+	
 	# Resume normal game processing
 	set_process(true)
 	set_physics_process(true)
@@ -438,6 +606,18 @@ func _on_battle_ended():
 	# Show main UI again
 	if main_ui:
 		main_ui.visible = true
+	
+	var ui_background = get_node_or_null("../CanvasLayer/UIBackground")
+	if ui_background:
+		ui_background.visible = true
+	
+	var wizard_turtle = get_node_or_null("../CanvasLayer/WizardTurtleUI")
+	if wizard_turtle:
+		wizard_turtle.show_wizard_turtle()
+	
+	# After battle ends and when returning to the main game scene
+	if wizard_turtle:
+		wizard_turtle.battle_ended()
 	
 	# Show key again if the player has one
 	if has_key and key_instance != null:
