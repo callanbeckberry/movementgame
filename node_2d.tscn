@@ -77,7 +77,7 @@ region = Rect2(96, 64, 32, 32)
 atlas = ExtResource("1_b77a1")
 region = Rect2(64, 64, 32, 32)
 
-[sub_resource type="SpriteFrames" id="SpriteFrames_6uxca"]
+[sub_resource type="SpriteFrames" id="SpriteFrames_g5u4q"]
 resource_local_to_scene = true
 animations = [{
 "frames": [{
@@ -100,7 +100,7 @@ region = Rect2(704, 384, 32, 32)
 atlas = ExtResource("14_byf16")
 region = Rect2(640, 384, 32, 32)
 
-[sub_resource type="SpriteFrames" id="SpriteFrames_lweyu"]
+[sub_resource type="SpriteFrames" id="SpriteFrames_0vw3a"]
 resource_local_to_scene = true
 animations = [{
 "frames": [{
@@ -205,7 +205,7 @@ autostart = true
 wait_time = 5.0
 
 [node name="UIBackground" type="Sprite2D" parent="CanvasLayer/Timers"]
-position = Vector2(-21, -32)
+position = Vector2(-32, -40)
 scale = Vector2(0.933333, 0.933333)
 texture = SubResource("AtlasTexture_bo33t")
 script = ExtResource("10_xivut")
@@ -308,7 +308,7 @@ transform = Transform2D(1, 0, 0, 1, 0, -64)
 
 [node name="Villager" parent="." instance=ExtResource("12_3gwuj")]
 position = Vector2(-160, -159)
-sprite_frames = SubResource("SpriteFrames_6uxca")
+sprite_frames = SubResource("SpriteFrames_g5u4q")
 
 [node name="Coin Room 1" type="Node" parent="."]
 
@@ -404,6 +404,6 @@ sprite_frames = ExtResource("14_r83hg")
 [node name="Final Boss" parent="." instance=ExtResource("16_gmjt1")]
 position = Vector2(-32, -544)
 portrait_texture = SubResource("AtlasTexture_0prv2")
-sprite_frames = SubResource("SpriteFrames_lweyu")
+sprite_frames = SubResource("SpriteFrames_0vw3a")
 
 [node name="CRTEffect" parent="." instance=ExtResource("18_2myn4")]

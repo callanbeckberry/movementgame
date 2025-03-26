@@ -32,6 +32,10 @@ var max_speed_up = 4
 var current_boss = null  # Reference to boss NPC if this is a boss battle
 var is_boss_battle = false  # Flag to indicate if this is a boss battle
 
+# Transition effect variables
+var transition_duration = 1.5  # Duration of transition
+var transition_blocks = []  # Array to store transition block references
+
 # Arrays for speech bubbles
 var enemy_attack_names = [
 	"Menacing Glare",
@@ -86,7 +90,7 @@ var player_attacks = [
 ]
 
 # Direction mapping
-var directions = ["up", "down", "left", "right"]
+var directions = ["battleup", "battledown", "battleleft", "battleright"]
 
 # Signal for when battle ends
 signal battle_ended
@@ -177,9 +181,8 @@ func start_boss_battle(boss_npc = null):
 	start_battle_with_transition()
 
 func start_battle_with_transition():
-	# Make scene visible but with overlay
+	# Make scene visible but prepare for transition
 	visible = true
-	transition_rect.color = Color(0, 0, 0, 1)  # Solid black
 	
 	# Reset battle menu state
 	attack_menu.visible = false
@@ -219,10 +222,8 @@ func start_battle_with_transition():
 	print("Battle camera offset: ", camera.offset)
 	print("Battle camera enabled: ", camera.enabled)
 	
-	# Fade in battle scene
-	var tween = create_tween()
-	tween.tween_property(transition_rect, "color", Color(0, 0, 0, 0), 1.0)
-	tween.finished.connect(func(): start_battle())
+	# Start the digital transition
+	_start_digital_transition_in()
 
 func start_battle():
 	print("Battle started!")
@@ -283,14 +284,14 @@ func _process(_delta):
 	
 	if attack_charging and not attack_menu_open:
 		# Check for direction inputs
-		if Input.is_action_just_pressed("up"):
-			_check_direction_input("up")
-		elif Input.is_action_just_pressed("down"):
-			_check_direction_input("down")
-		elif Input.is_action_just_pressed("left"):
-			_check_direction_input("left")
-		elif Input.is_action_just_pressed("right"):
-			_check_direction_input("right")
+		if Input.is_action_just_pressed("battleup"):
+			_check_direction_input("battleup")
+		elif Input.is_action_just_pressed("battledown"):
+			_check_direction_input("battledown")
+		elif Input.is_action_just_pressed("battleleft"):
+			_check_direction_input("battleleft")
+		elif Input.is_action_just_pressed("battleright"):
+			_check_direction_input("battleright")
 	elif attack_menu_open:
 		# Handle menu navigation
 		if Input.is_action_just_pressed("up"):
@@ -361,8 +362,9 @@ func _set_new_direction_prompt():
 	# Choose a random direction
 	current_prompt_direction = directions[randi() % directions.size()]
 	
-	# Update the direction prompt UI
-	direction_prompt.text = "Press " + current_prompt_direction.capitalize()
+	# Update the direction prompt UI with a more descriptive name
+	var display_name = current_prompt_direction.substr(6).capitalize()  # Remove 'battle' prefix
+	direction_prompt.text = "Press " + display_name
 	
 	# Reset scale/position in case it was changed by animations
 	direction_prompt.scale = Vector2(1, 1)
@@ -608,13 +610,9 @@ func end_battle_with_transition():
 		enemy_speech_bubble.hide_bubble()
 	if player_speech_bubble:
 		player_speech_bubble.hide_bubble()
-		
-	# Fade out battle scene
-	transition_rect.color = Color(0, 0, 0, 0)  # Start transparent
 	
-	var tween = create_tween()
-	tween.tween_property(transition_rect, "color", Color(0, 0, 0, 1), 1.0)
-	tween.finished.connect(func(): _end_battle())
+	# Start the digital transition out
+	_start_digital_transition_out()
 
 func _end_battle():
 	in_battle = false
@@ -645,6 +643,143 @@ func _end_battle():
 	
 	# Signal to the main game that battle is over
 	emit_signal("battle_ended")
+
+# DIGITAL BLOCK TRANSITION EFFECT
+# Creates a grid of colored blocks that fade in/out for a pixelated effect
+func _start_digital_transition_in():
+	print("Starting digital transition IN")
+	
+	# Start with black screen
+	if transition_rect:
+		transition_rect.visible = true
+		transition_rect.material = null  # No shader
+		transition_rect.color = Color(0, 0, 0, 1)
+	
+	# First fade to partially transparent
+	var tween = create_tween()
+	tween.tween_property(transition_rect, "color:a", 0.8, 0.4)
+	await tween.finished
+	
+	# Get viewport size to position blocks across entire screen
+	var viewport_size = get_viewport_rect().size
+	
+	# Create grid of digital blocks
+	_create_digital_blocks(viewport_size, true)
+	
+	# Add a short delay
+	await get_tree().create_timer(0.5).timeout
+	
+	# Final fade out to reveal battle scene
+	tween = create_tween()
+	tween.tween_property(transition_rect, "color:a", 0.0, 0.5)
+	tween.finished.connect(func(): start_battle())
+
+# Creates digital blocks for the transition effect
+func _create_digital_blocks(viewport_size, is_intro):
+	# Clear any existing blocks
+	for block in transition_blocks:
+		if is_instance_valid(block):
+			block.queue_free()
+	transition_blocks.clear()
+	
+	# Settings
+	var block_count = 50  # Number of blocks to create
+	var max_size = 60.0   # Maximum block size
+	var min_size = 10.0   # Minimum block size
+	
+	# Create random blocks
+	for i in range(block_count):
+		var block = ColorRect.new()
+		add_child(block)
+		transition_blocks.append(block)
+		
+		# Random position and size
+		var size = randf_range(min_size, max_size)
+		block.size = Vector2(size, size)
+		block.position = Vector2(
+			randf_range(0, viewport_size.x - size),
+			randf_range(0, viewport_size.y - size)
+		)
+		
+		# Different colors for intro vs outro
+		if is_intro:
+			block.color = Color(
+				randf_range(0.2, 0.9),
+				randf_range(0.2, 0.9),
+				randf_range(0.2, 0.9),
+				0.0  # Start transparent
+			)
+		else:
+			block.color = Color(
+				randf_range(0.0, 0.5),
+				randf_range(0.0, 0.5),
+				randf_range(0.0, 0.5),
+				0.0  # Start transparent
+			)
+		
+		# Animate blocks
+		var block_tween = create_tween()
+		
+		if is_intro:
+			# For intro, fade in then out
+			block_tween.tween_property(block, "color:a", randf_range(0.5, 0.9), randf_range(0.1, 0.5))
+			block_tween.tween_property(block, "color:a", 0.0, randf_range(0.2, 0.7))
+		else:
+			# For outro, just fade in and stay
+			block_tween.tween_property(block, "color:a", randf_range(0.5, 0.9), randf_range(0.1, 0.5))
+		
+		# Queue free at the end of animation if intro
+		if is_intro:
+			block_tween.tween_callback(func(): _remove_block(block))
+
+# Helper to remove a block and clean up the array
+func _remove_block(block):
+	if is_instance_valid(block):
+		block.queue_free()
+		
+	var index = transition_blocks.find(block)
+	if index >= 0:
+		transition_blocks.remove_at(index)
+
+# Transition out of battle
+func _start_digital_transition_out():
+	print("Starting digital transition OUT")
+	
+	# Start with transparent overlay
+	if transition_rect:
+		transition_rect.visible = true
+		transition_rect.material = null
+		transition_rect.color = Color(0, 0, 0, 0)
+	
+	# First fade to partially visible
+	var tween = create_tween()
+	tween.tween_property(transition_rect, "color:a", 0.4, 0.3)
+	await tween.finished
+	
+	# Get viewport size
+	var viewport_size = get_viewport_rect().size
+	
+	# Create digital blocks for exit
+	_create_digital_blocks(viewport_size, false)
+	
+	# Add a short delay
+	await get_tree().create_timer(0.4).timeout
+	
+	# Final fade to black
+	tween = create_tween()
+	tween.tween_property(transition_rect, "color:a", 1.0, 0.7)
+	
+	# Switch to battle end when done
+	tween.finished.connect(func(): 
+		# Clean up any remaining blocks
+		for block in transition_blocks:
+			if is_instance_valid(block):
+				block.queue_free()
+		transition_blocks.clear()
+		
+		# End the battle
+		_end_battle()
+	)
 
 func create_debug_sprites():
 	# Create player sprite placeholder if needed
