@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3 uid="uid://dq2qb3mfbnpow"]
+
+[ext_resource type="Texture2D" uid="uid://cxuryokjriuck" path="res://Rabbit mock-Sheet.png" id="1_yq8ia"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1woqk"]
+atlas = ExtResource("1_yq8ia")
+region = Rect2(16, 144, 16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_itkr0"]
+size = Vector2(15.9999, 16.0001)
+
+[node name="Node2D" type="Area2D"]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(8, 8)
+texture = SubResource("AtlasTexture_1woqk")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(7.9999, 8.0001)
+rotation = 1.57079
+shape = SubResource("RectangleShape2D_itkr0")

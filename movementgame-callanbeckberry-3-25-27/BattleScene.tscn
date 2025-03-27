@@ -1,0 +1,120 @@
+[gd_scene load_steps=5 format=3 uid="uid://cp44ycryov0i3"]
+
+[ext_resource type="Script" path="res://BattleScene.gd" id="1_pjyq6"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_kdbrx"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_q0821"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_n4qpy"]
+
+[node name="BattleScene" type="Node2D"]
+script = ExtResource("1_pjyq6")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_left = 2.0
+offset_right = 1274.0
+offset_bottom = 718.0
+color = Color(0.00953191, 0.591989, 0.71223, 1)
+metadata/_edit_use_anchors_ = true
+
+[node name="Battleground" type="ColorRect" parent="."]
+offset_left = 640.0
+offset_right = 1272.0
+offset_bottom = 718.0
+color = Color(0.556863, 0.388235, 1, 1)
+metadata/_edit_use_anchors_ = true
+
+[node name="PlayerSprite" type="Sprite2D" parent="."]
+position = Vector2(704, 400)
+
+[node name="EnemySprite" type="Sprite2D" parent="."]
+position = Vector2(960, 192)
+
+[node name="SpeechBubble" type="Panel" parent="EnemySprite"]
+visible = false
+offset_left = -152.0
+offset_top = -152.0
+offset_right = 168.0
+offset_bottom = -80.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_kdbrx")
+
+[node name="Text" type="Label" parent="EnemySprite/SpeechBubble"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 8.0
+offset_right = 304.0
+offset_bottom = 64.0
+text = "Enemy Attack"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 624.0
+offset_bottom = 718.0
+metadata/_edit_use_anchors_ = true
+
+[node name="AttackBar" type="ProgressBar" parent="UI"]
+layout_mode = 0
+offset_left = 64.0
+offset_top = 576.0
+offset_right = 576.0
+offset_bottom = 603.0
+theme_override_styles/background = SubResource("StyleBoxFlat_q0821")
+theme_override_styles/fill = SubResource("StyleBoxFlat_n4qpy")
+metadata/_edit_use_anchors_ = true
+
+[node name="BarLabel" type="Label" parent="UI/AttackBar"]
+layout_mode = 0
+offset_top = 32.0
+offset_right = 200.0
+offset_bottom = 55.0
+text = "Attack Charge"
+metadata/_edit_use_anchors_ = true
+
+[node name="DirectionPrompt" type="Label" parent="UI"]
+visible = false
+layout_mode = 0
+offset_left = 224.0
+offset_top = 328.0
+offset_right = 292.0
+offset_bottom = 351.0
+scale = Vector2(2.68905, 2.68905)
+text = "Press UP"
+
+[node name="AttackMenu" type="VBoxContainer" parent="UI"]
+visible = false
+layout_mode = 0
+offset_left = 64.0
+offset_top = 64.0
+offset_right = 576.0
+offset_bottom = 448.0
+
+[node name="MenuLabel" type="Label" parent="UI/AttackMenu"]
+layout_mode = 2
+text = "Select Attack:"
+
+[node name="SpeedUpLabel" type="Label" parent="UI"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "Speed up the battle: 0/100 yen added"
+
+[node name="Timers" type="Node" parent="."]
+
+[node name="EnemyAttackTimer" type="Timer" parent="Timers"]
+
+[node name="SpeechBubbleTimer" type="Timer" parent="Timers"]
+
+[node name="Camera2D" type="Camera2D" parent="." groups=["cameras"]]
+position = Vector2(640, 360)
+enabled = false
+
+[node name="TransitionRect" type="ColorRect" parent="."]
+z_index = 100
+offset_right = 1280.0
+offset_bottom = 720.0
+color = Color(0.00953191, 0.591989, 0.71223, 1)
