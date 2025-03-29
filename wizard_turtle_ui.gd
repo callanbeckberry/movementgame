@@ -1,18 +1,16 @@
 extends Control
+
 # UI Components
 @onready var turtle_sprite = $TurtleSprite
 @onready var dialogue_box = $DialogueBox
 @onready var dialogue_text = $DialogueBox/DialogueText
 @onready var typing_timer = $TypingTimer
 @onready var comment_timer = $CommentTimer
-@onready var text_sound = $TextSound  # Add this AudioStreamPlayer node to your scene
 
 # Configuration
 var typing_speed = 0.03  # Time between characters
 var min_comment_interval = 10.0  # Minimum seconds between comments
 var max_comment_interval = 60.0  # Maximum seconds between comments
-var min_pitch = 0.9  # Minimum pitch variation
-var max_pitch = 1.1  # Maximum pitch variation
 
 # State variables
 var talking = false
@@ -99,14 +97,6 @@ func _ready():
 	else:
 		push_error("CommentTimer node not found!")
 	
-	# Check for text sound
-	if !has_node("TextSound"):
-		push_warning("TextSound AudioStreamPlayer not found! Adding one...")
-		var audio_player = AudioStreamPlayer.new()
-		audio_player.name = "TextSound"
-		add_child(audio_player)
-		text_sound = audio_player
-	
 	# Start with a random interval for first comment
 	start_random_timer()
 
@@ -115,7 +105,17 @@ func _process(delta):
 	if talking and turtle_sprite:
 		turtle_sprite.position.y = original_position.y + sin(Time.get_ticks_msec() * 0.005 * bob_speed) * bob_amount
 	
-	# No skipping dialogue with any button presses
+	# Check for key presses
+	# Skip typing with UI accept or mouse click
+	if typing_timer and typing_timer.is_stopped() == false:
+		if Input.is_action_just_pressed("ui_accept") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			print("Dialogue skip triggered by input")
+			skip_typing()
+	
+	# Show hint text when 'hint' action is pressed (F key)
+	if Input.is_action_just_pressed("hint"):
+		print("Hint action detected - showing hint")
+		force_comment("Hint: Use your wits! Or just try clicking stuff randomly...")
 
 func start_random_timer():
 	if comment_timer:
@@ -194,12 +194,6 @@ func _on_typing_timer_timeout():
 	if current_text_length <= full_text.length():
 		# Show one more character
 		dialogue_text.text = full_text.substr(0, current_text_length)
-		
-		# Play sound with random pitch
-		play_text_sound()
-		
-		# Continue typing
-		typing_timer.start()
 	else:
 		# Typing is complete
 		typing_timer.stop()
@@ -211,19 +205,6 @@ func _on_typing_timer_timeout():
 		auto_hide_timer.timeout.connect(_on_auto_hide_timeout)
 		add_child(auto_hide_timer)
 		auto_hide_timer.start()
-
-# Play a sound with random pitch for each character
-func play_text_sound():
-	if text_sound and text_sound.stream:
-		# Skip sounds for spaces to make the text flow better
-		var current_char = ""
-		if current_text_length > 0 and current_text_length <= full_text.length():
-			current_char = full_text[current_text_length - 1]
-		
-		if current_char != " " and current_char != "":
-			# Set random pitch
-			text_sound.pitch_scale = randf_range(min_pitch, max_pitch)
-			text_sound.play()
 
 # Called when auto-hide timer finishes
 func _on_auto_hide_timeout():
