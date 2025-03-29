@@ -26,6 +26,8 @@ var target_position = Vector2.ZERO  # Destination position for movement
 var can_move = true  # Flag to control movement (for dialogue system)
 var facing_direction = Vector2.DOWN  # Track which direction player is facing
 
+var is_boss_battle = false
+
 # Coin system
 var coins = 0           # Current collected coins
 var total_coins = 120   # Total coins in the game (will be updated by RoomManager)
@@ -542,7 +544,10 @@ func unlock_final_boss():
 
 # BATTLE SYSTEM CODE
 
-func start_battle():
+func start_battle(is_boss = false):
+	print("Battle started! Is boss battle:", is_boss)
+	in_battle = true
+	is_boss_battle = is_boss  # Set the boss battle flag
 	print("A battle has started!")
 	in_battle = true
 	

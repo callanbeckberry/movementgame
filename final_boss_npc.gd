@@ -1,5 +1,4 @@
 extends NPC
-
 class_name FinalBossNPC
 
 # Final boss specific properties
@@ -8,17 +7,16 @@ class_name FinalBossNPC
 	"Collect all 100 coins and return.",
 	"Your journey is incomplete, mortal."
 ]
-
 @export_multiline var post_complete_dialogues: Array[String] = [
 	"So, you've collected all the coins...",
 	"Very well. Prepare yourself for battle!",
 	"Let us see if you are truly worthy!"
 ]
 
-# Reference to player for checking coins
+var is_final_boss = true  # This is correctly set
 var player_ref = null
 var dialogue_index = 0
-var required_coins = 100
+var required_coins = 1
 
 # Override _ready to add to boss group
 func _ready():
@@ -51,30 +49,36 @@ func update_dialogues_based_on_coins():
 		print("Final Boss: Using pre-completion dialogues. Player has", 
 			  player_ref.coins if player_ref else 0, "/", required_coins, "coins")
 
-# Override dialogue hidden callback
+# Override dialogue hidden callback - FIXED FUNCTION NAME
 func _on_dialogue_hidden():
 	# Call parent method first
 	super._on_dialogue_hidden()
 	
 	# Check if we should start boss battle
 	if player_ref and player_ref.coins >= required_coins:
-		dialogue_index += 1
-		
-		# After showing the last dialogue, start the boss battle
-		if dialogue_index >= post_complete_dialogues.size():
-			print("Final Boss: Starting boss battle!")
-			call_deferred("start_boss_battle")
-			dialogue_index = 0  # Reset for next time
+		# Start battle immediately after first dialogue
+		print("Final Boss: Starting boss battle!")
+		call_deferred("start_boss_battle")
+		dialogue_index = 0  # Reset for next time
 	else:
 		# Reset dialogue index if conditions aren't met
 		dialogue_index = 0
 
 # Function to start boss battle
 func start_boss_battle():
+	# Find player
+	var player = get_tree().get_first_node_in_group("player")
+	if player and player.has_method("start_battle"):
+		# Call start_battle with the boss parameter set to true
+		player.start_battle(true)
+	
 	# Find battle scene
 	var battle_scene = get_tree().get_first_node_in_group("battle_scene")
-	
 	if battle_scene and battle_scene.has_method("start_boss_battle"):
+		# Call special boss battle method with self as parameter
+		battle_scene.start_boss_battle(self)
+		print("Boss battle started with", battle_scene.name)
+		
 		# Call special boss battle method with self as parameter
 		battle_scene.start_boss_battle(self)
 		print("Boss battle started with", battle_scene.name)
